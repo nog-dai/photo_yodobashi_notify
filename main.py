@@ -17,6 +17,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 # フォトヨドバシの新着記事を取得
 def fetch_new_articles():
     url = "https://photo.yodobashi.com/"
@@ -44,6 +45,7 @@ def fetch_new_articles():
         print(f"Error fetching articles: {e}")
         return []
 
+
 # 新着記事をSlackに投稿
 def post_to_slack(article, channels):
     client = WebClient(token=SLACK_BOT_TOKEN)
@@ -58,6 +60,7 @@ def post_to_slack(article, channels):
             except SlackApiError as e:
                 print(f"Slack API error in channel {channel}: {e.response['error']}")
 
+
 # 投稿済みかチェック
 def is_posted(article_url):
     conn = sqlite3.connect('posted_articles.db')
@@ -66,6 +69,7 @@ def is_posted(article_url):
     result = c.fetchone()
     conn.close()
     return result is not None
+
 
 # チャンネルへの投稿済みかチェック
 def is_posted_to_channel(article_url, channel):
@@ -76,6 +80,7 @@ def is_posted_to_channel(article_url, channel):
     conn.close()
     return result is not None
 
+
 # 投稿済みとして記録
 def mark_as_posted(article_url):
     conn = sqlite3.connect('posted_articles.db')
@@ -84,6 +89,7 @@ def mark_as_posted(article_url):
     conn.commit()
     conn.close()
 
+
 # チャンネルへの投稿済みとして記録
 def mark_as_posted_to_channel(article_url, channel):
     conn = sqlite3.connect('posted_articles.db')
@@ -91,6 +97,7 @@ def mark_as_posted_to_channel(article_url, channel):
     c.execute('INSERT OR IGNORE INTO postings (article_url, channel) VALUES (?, ?)', (article_url, channel))
     conn.commit()
     conn.close()
+
 
 # 新着記事をチェックして投稿
 def check_and_post_articles():
