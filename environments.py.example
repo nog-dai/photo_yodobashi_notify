@@ -1,1 +1,5 @@
 SLACK_BOT_TOKEN='xoxb-******'
+
+CHANNEL_IDS=[
+    '*****',
+]

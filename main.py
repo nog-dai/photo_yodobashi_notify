@@ -4,8 +4,7 @@ from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from environments import CHANNEL_IDS
-from secret_token import SLACK_BOT_TOKEN
+from environments import CHANNEL_IDS, SLACK_BOT_TOKEN
 
 
 # SQLiteの初期化
