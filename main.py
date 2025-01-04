@@ -1,8 +1,10 @@
 import requests
 import sqlite3
+import time
 from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from datetime import datetime, date
 
 from environments import CHANNEL_IDS, SLACK_BOT_TOKEN
 
@@ -43,6 +45,27 @@ def fetch_new_articles():
     except requests.exceptions.RequestException as e:
         print(f"Error fetching articles: {e}")
         return []
+
+
+# 記事の日付を取得
+def get_article_date(article_url):
+    try:
+        response = requests.get(article_url, headers=HEADERS, timeout=15)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, "html.parser")
+        date_tag = soup.find("p", class_="date")
+        if date_tag:
+            # 日付の余分な部分を削除して解析
+            date_text = date_tag.text.strip().strip("()").strip()
+            print(date_text)
+            return datetime.strptime(date_text, "%Y.%m.%d").date()
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching article date for {article_url}: {e}")
+        return None
+    except ValueError as e:
+        print(f"Error parsing date for {article_url}: {e}")
+        return None
 
 
 # 新着記事をSlackに投稿
@@ -103,10 +126,16 @@ def check_and_post_articles():
     init_db()
     channels = CHANNEL_IDS  # 投稿先チャンネルのリスト
     articles = fetch_new_articles()
+    today = date.today() # YYYY-MM-dd の形式
+
     for article in articles:
+        time.sleep(3)
         if not is_posted(article['url']):
-            mark_as_posted(article['url'])
-        post_to_slack(article, channels)
+            article_date = get_article_date(article['url'])
+            if article_date == today:
+                mark_as_posted(article['url'])
+                post_to_slack(article, channels)
+
 
 if __name__ == "__main__":
     check_and_post_articles()
