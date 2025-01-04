@@ -39,8 +39,6 @@ def fetch_new_articles():
                         "title": img_tag["alt"],
                         "url": url + link["href"],
                     })
-
-        print(articles)
         return articles
     except requests.exceptions.RequestException as e:
         print(f"Error fetching articles: {e}")
