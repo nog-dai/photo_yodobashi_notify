@@ -6,6 +6,11 @@ from slack_sdk.errors import SlackApiError
 
 from environments import CHANNEL_IDS, SLACK_BOT_TOKEN
 
+# グローバル変数
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+}
+
 
 # SQLiteの初期化
 def init_db():
@@ -20,12 +25,9 @@ def init_db():
 # フォトヨドバシの新着記事を取得
 def fetch_new_articles():
     url = "https://photo.yodobashi.com/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
     try:
-        response = requests.get(url, headers=headers, timeout=15)  # タイムアウトを15秒に設定
-        response.raise_for_status()  # HTTPエラーを検出
+        response = requests.get(url, headers=HEADERS, timeout=15)
+        response.raise_for_status()
         soup = BeautifulSoup(response.content, "html.parser")
 
         articles = []
