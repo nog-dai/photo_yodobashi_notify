@@ -1,6 +1,7 @@
 import requests
 import sqlite3
 import time
+import logging
 from bs4 import BeautifulSoup
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -12,6 +13,14 @@ from environments import CHANNEL_IDS, SLACK_BOT_TOKEN
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
+
+# ロガーの設定
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M'  # 年-月-日 時:分
+)
+logger = logging.getLogger(__name__)
 
 
 # SQLiteの初期化
@@ -31,6 +40,7 @@ def fetch_new_articles():
         response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, "html.parser")
+        logger.info("Fetched new articles from %s", url)
 
         articles = []
         for div in soup.find_all("div", class_="new"):
@@ -57,7 +67,6 @@ def get_article_date(article_url):
         if date_tag:
             # 日付の余分な部分を削除して解析
             date_text = date_tag.text.strip().strip("()").strip()
-            print(date_text)
             return datetime.strptime(date_text, "%Y.%m.%d").date()
         return None
     except requests.exceptions.RequestException as e:
@@ -130,12 +139,21 @@ def check_and_post_articles():
 
     for article in articles:
         time.sleep(3)
+        
         if not is_posted(article['url']):
             article_date = get_article_date(article['url'])
             if article_date == today:
                 mark_as_posted(article['url'])
+                logger.info(f'本日の未投稿記事なのでSlackへPOST => \n{article}')
                 post_to_slack(article, channels)
+            else:
+                logger.info(f'別日の記事なので静観 => \n{article}')
+
+        else:
+            logger.info(f'投稿済み => \n{article}')
 
 
 if __name__ == "__main__":
+    logger.info('------- 実行開始 ------')
     check_and_post_articles()
+    logger.info('------- 実行終了 ------')

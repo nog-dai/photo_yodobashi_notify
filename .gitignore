@@ -1,3 +1,4 @@
 __pycache__/
 environments.py
 posted_articles.db
+output.log
